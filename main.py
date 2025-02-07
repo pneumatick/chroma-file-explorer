@@ -17,16 +17,14 @@ def testing_init():
         ids=["id1", "id2", "id3", "id4", "id5", "id6"]
     )
 
-def chroma_query(prompt):
+def chroma_query(prompt, n_results):
     collection = client.get_collection(name='testing')
     results = collection.query(
         query_texts=[prompt], 
-        n_results=3
+        n_results=n_results
     )
-
-    print(f"Results for query: {prompt}")
-    for result in results["documents"][0]:
-        print(result)
+    
+    return results
 
 def add_item(data, metadata = None):
     id = sha256(data.encode()).hexdigest()
@@ -61,8 +59,22 @@ def add():
         add_item(desc)
 
 def search():
-    query = input("What are you looking for?: ")
-    chroma_query(query)
+    command = ""
+    while (command != "n" and command != "!!"):
+        query = input("What are you looking for?: ")
+        results = chroma_query(query, 3)
+
+        for i, desc in enumerate(results["documents"][0]):
+            print(
+                f"Result {i + 1}: " +
+                f"{desc}, " +
+                f"{results['metadatas'][0][i]}, " +
+                f"Distance: {results['distances'][0][i]}"
+            )
+        command = input("Would you like to search again? (y/n): ").lower()
+
+        if command == "n" or command == "!!":
+            return command
 
 if __name__ == "__main__":
     command = ""
@@ -73,7 +85,7 @@ if __name__ == "__main__":
         if command == "a" or command == "add":
             add()
         elif command == "s" or command == "search":
-            search()
+            command = search()
         elif command == "!!":
             print("Quitting...")
             break
