@@ -36,7 +36,7 @@ def add_item(data, metadata = None):
         collection.add(
             documents=[data],
             ids=[id],
-            metadata=[metadata]
+            metadatas=[metadata]
         )
     else:
         collection.add(
@@ -49,9 +49,16 @@ def add_item(data, metadata = None):
 """ REPL Functions """
 
 def add():
-    data = input("Enter the data you would like to add: ")
+    desc = input("Enter a description of the file's contents: ")
+    path = input("Enter the file's path (Enter to skip): ")
 
-    add_item(data)
+    if path:
+        metadata = {
+            "path": path
+        }
+        add_item(desc, metadata)
+    else:
+        add_item(desc)
 
 def search():
     query = input("What are you looking for?: ")
