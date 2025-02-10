@@ -4,19 +4,10 @@ import subprocess
 
 client = chromadb.PersistentClient(path='.')
 
-def testing_init():
-    collection = client.create_collection(name='testing')
-    collection.add(
-        documents=[
-            "This is a document about pineapples",
-            "This is a document about oranges",
-            "This is a document about warfare",
-            "This is a picture of a dog",
-            "This is a recipe for a cake",
-            "This is a meme about cats",
-        ],
-        ids=["id1", "id2", "id3", "id4", "id5", "id6"]
-    )
+def db_init(name):
+    collection = client.create_collection(name=name)
+    print(f"Created collection with name: {name}")
+    return collection
 
 def chroma_query(prompt, n_results):
     collection = client.get_collection(name='testing')
@@ -92,16 +83,35 @@ def search():
 
 if __name__ == "__main__":
     command = ""
+    collection = None
 
+    # Create or load collection
+    while command == "n" or command == "" and command != "!!":
+        command = input("Load or create collection (Enter name OR skip to create): ")
+        try:
+            collection = client.get_collection(name=command)
+            print(f"Loaded collection with name: {command}")
+        # Note: Presumptuous to assume that the error is due to the collection not existing
+        except:
+            if command == "!!":
+                break
+            
+            # Create new collection
+            command = input(f"{command} not found. Create new collection with this name? (y/n): ").lower()
+            if command == "y":
+                collection = db_init(command)
+
+    # Main REPL
     while command != "!!":
-        command = input("What would you like to do? ((a)dd, (s)earch): ").lower()
+        command = input("What would you like to do? ((a)dd, (s)earch), (q)uit: ").lower()
 
         if command == "a" or command == "add":
             add()
         elif command == "s" or command == "search":
             command = search()
-        elif command == "!!":
-            print("Quitting...")
+        elif command == "!!" or command == "q" or command == "quit":
             break
         else:
             print("Invalid command \"{command}\"") 
+    
+    print("Quitting...")
