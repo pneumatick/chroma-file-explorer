@@ -1,5 +1,6 @@
 import chromadb
 from hashlib import sha256
+import subprocess
 
 client = chromadb.PersistentClient(path='.')
 
@@ -44,6 +45,9 @@ def add_item(data, metadata = None):
     
     print(f"Added item with id: {id}")
 
+def open_file(path):
+    subprocess.run(["open", path])
+
 """ REPL Functions """
 
 def add():
@@ -71,10 +75,20 @@ def search():
                 f"{results['metadatas'][0][i]}, " +
                 f"Distance: {results['distances'][0][i]}"
             )
-        command = input("Would you like to search again? (y/n): ").lower()
+        command = input("View file or search again? (Enter number OR (s)earch): ").lower()
 
-        if command == "n" or command == "!!":
+        if command.isnumeric():
+            open_file(results["metadatas"][0][int(command) - 1]["path"])
+            command = input("Search again? (y/n): ").lower()
+        elif command == "s" or command == "search":
+            continue
+        
+        if command == "y":
+            continue
+        elif command == "n" or command == "!!":
             return command
+        else:
+            print("Invalid command \"{command}\"")
 
 if __name__ == "__main__":
     command = ""
