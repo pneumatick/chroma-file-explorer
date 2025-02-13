@@ -2,14 +2,14 @@ import { ChromaClient, Collection } from "chromadb";
 
 const client = new ChromaClient();
 
-async function initChroma() {
+export async function initChroma() {
     const collection = await client.getOrCreateCollection({
         name: "testing"
     });
     return collection;
 }
 
-async function db_query(collection: Collection, queryText: string, nResults: number) {
+export async function db_query(collection: Collection, queryText: string, nResults: number) {
     const result = await collection.query({
         queryTexts: queryText,
         nResults: nResults
@@ -35,4 +35,4 @@ async function main() {
     });
 }
 
-main();
+//main();

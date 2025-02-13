@@ -36,6 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.initChroma = initChroma;
+exports.db_query = db_query;
 var chromadb_1 = require("chromadb");
 var client = new chromadb_1.ChromaClient();
 function initChroma() {
@@ -103,4 +105,4 @@ function main() {
         });
     });
 }
-main();
+//main();

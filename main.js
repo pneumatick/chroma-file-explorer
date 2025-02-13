@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron/main')
 const path = require('node:path')
+const chroma = require('./chroma.js')
 
 const createWindow = () => {
     const win = new BrowserWindow({
@@ -15,8 +16,15 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
+    chroma.initChroma().then((collection) => {
+        ipcMain.handle('query', () => {
+            console.log('Querying (main)...');
+            const response = chroma.db_query(collection, "orange", 3);
+            return response;
+        })
+    });
+
     ipcMain.handle('ping', () => 'pong')
-    ipcMain.handle('query', () => 'Querying (main)...')
     createWindow()
 })
 
