@@ -5,6 +5,9 @@ contextBridge.exposeInMainWorld('versions', {
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
   ping: () => ipcRenderer.invoke('ping'),
-  query: () => ipcRenderer.invoke('query')
   // we can also expose variables, not just functions
+})
+
+contextBridge.exposeInMainWorld('chroma', {
+    query: (text, numResults) => ipcRenderer.invoke('query', [text, numResults])
 })

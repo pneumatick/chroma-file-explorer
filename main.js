@@ -17,9 +17,9 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
     chroma.initChroma().then((collection) => {
-        ipcMain.handle('query', () => {
-            console.log('Querying (main)...');
-            const response = chroma.db_query(collection, "orange", 3);
+        ipcMain.handle('query', (_, args) => {
+            const [text, numResults] = args;
+            const response = chroma.db_query(collection, text, numResults);
             return response;
         })
     });
