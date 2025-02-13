@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,8 +35,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import { ChromaClient } from "chromadb";
-var client = new ChromaClient();
+Object.defineProperty(exports, "__esModule", { value: true });
+var chromadb_1 = require("chromadb");
+var client = new chromadb_1.ChromaClient();
 function initChroma() {
     return __awaiter(this, void 0, void 0, function () {
         var collection;
@@ -47,6 +49,22 @@ function initChroma() {
                 case 1:
                     collection = _a.sent();
                     return [2 /*return*/, collection];
+            }
+        });
+    });
+}
+function db_query(collection, queryText, nResults) {
+    return __awaiter(this, void 0, void 0, function () {
+        var result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, collection.query({
+                        queryTexts: queryText,
+                        nResults: nResults
+                    })];
+                case 1:
+                    result = _a.sent();
+                    return [2 /*return*/, result];
             }
         });
     });
@@ -69,11 +87,20 @@ function addDocument(collection) {
         });
     });
 }
-var collection = await initChroma();
-await addDocument(collection);
-collection.query({
-    queryTexts: "orange",
-    nResults: 3
-}).then(function (result) {
-    console.log(result);
-});
+function main() {
+    return __awaiter(this, void 0, void 0, function () {
+        var collection;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, initChroma()];
+                case 1:
+                    collection = _a.sent();
+                    db_query(collection, "pineapple", 3).then(function (result) {
+                        console.log(result);
+                    });
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+main();

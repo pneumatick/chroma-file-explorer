@@ -9,6 +9,14 @@ async function initChroma() {
     return collection;
 }
 
+async function db_query(collection: Collection, queryText: string, nResults: number) {
+    const result = await collection.query({
+        queryTexts: queryText,
+        nResults: nResults
+    });
+    return result;
+}
+
 async function addDocument(collection: Collection) {
     await collection.upsert({
         documents: [
@@ -19,12 +27,12 @@ async function addDocument(collection: Collection) {
     });
 }
 
+async function main() {
+    const collection = await initChroma();
 
-const collection = await initChroma();
-await addDocument(collection);
-collection.query({
-    queryTexts: "orange",
-    nResults: 3
-}).then((result) => {
-    console.log(result);
-});
+    db_query(collection, "pineapple", 3).then((result) => {
+        console.log(result);
+    });
+}
+
+main();

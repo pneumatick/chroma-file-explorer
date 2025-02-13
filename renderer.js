@@ -7,3 +7,12 @@ const func = async () => {
 }
   
 func()
+
+/* Front-end Functionality */
+
+const query_button = document.getElementById('query-button');
+query_button.addEventListener('click', async () => {
+    console.log('Querying (renderer)...');
+    const response = await window.versions.query();
+    console.log(response);
+});
