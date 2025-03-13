@@ -44,7 +44,7 @@ def add(collection):
     path = input("Enter the file's path (Enter to skip): ")
     filetype = input("Enter the file's type (Enter to skip): ")
 
-    if path:
+    if path or filetype:
         metadata = {
             "path": path,
             "type": filetype
@@ -68,14 +68,48 @@ def search(collection):
                 f"Distance: {results['distances'][0][i]}" +
                 "\n"
             )
-        command = input("View file or search again? (Enter number OR (s)earch): ").lower()
+        command = input("View file, edit, or search again? (Enter number, (e)dit, (s)earch): ").lower()
 
+        # View file
         if command.isnumeric():
             open_file(results["metadatas"][0][int(command) - 1]["path"])
             command = input("Search again? (y/n): ").lower()
+        # Edit item
+        elif command == "e" or command == "edit":
+            command  = input("Enter number OR (c)ancel: ").lower()
+            if command.isnumeric():
+                selection = int(command)
+                entry_id = results["ids"][0][selection - 1]
+                print(f"Editing item with id: {entry_id}")
+                print(f"Current description: {results['documents'][0][selection - 1]}")
+
+                desc = input("Enter a new description (Enter to keep): ")
+                path = input("Enter a new path (Enter to keep): ")
+                filetype = input("Enter a new type (Enter to keep): ")
+
+                if not desc:
+                    desc = results["documents"][0][selection - 1]
+                    print(desc)
+                if not path:
+                    path = results["metadatas"][0][selection - 1]["path"]
+                if not filetype:
+                    filetype = results["metadatas"][0][selection - 1]["type"]
+                
+                collection.update(
+                    ids=[entry_id],
+                    documents=[desc],
+                    metadatas=[{"path": path, "type": filetype}]
+                )
+                print(f"Updated item with id: {entry_id}")
+            elif command == "c" or command == "cancel":
+                continue
+            else:
+                print("Invalid command \"{command}\"")
+        # Search again
         elif command == "s" or command == "search":
             continue
         
+        # This probably needs refactoring
         if command == "y":
             continue
         elif command == "n" or command == "!!":
