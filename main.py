@@ -42,10 +42,12 @@ def open_file(path):
 def add(collection):
     desc = input("Enter a description of the file's contents: ")
     path = input("Enter the file's path (Enter to skip): ")
+    filetype = input("Enter the file's type (Enter to skip): ")
 
     if path:
         metadata = {
-            "path": path
+            "path": path,
+            "type": filetype
         }
         add_item(collection, desc, metadata)
     else:
@@ -59,10 +61,12 @@ def search(collection):
 
         for i, desc in enumerate(results["documents"][0]):
             print(
+                "\n" +
                 f"Result {i + 1}: " +
                 f"{desc}, " +
                 f"{results['metadatas'][0][i]}, " +
-                f"Distance: {results['distances'][0][i]}"
+                f"Distance: {results['distances'][0][i]}" +
+                "\n"
             )
         command = input("View file or search again? (Enter number OR (s)earch): ").lower()
 
@@ -95,9 +99,10 @@ if __name__ == "__main__":
                 break
             
             # Create new collection
+            coll_name = command
             command = input(f"{command} not found. Create new collection with this name? (y/n): ").lower()
             if command == "y":
-                collection = db_init(command)
+                collection = db_init(coll_name)
 
     # Main REPL
     while command != "!!":
