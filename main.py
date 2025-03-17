@@ -54,16 +54,59 @@ def add(collection):
     else:
         add_item(collection, desc)
 
+def edit_item(results):
+    command = ""
+
+    while command != "c" and command != "cancel" and command != "!!":
+        command = input("Enter number OR (c)ancel: ").lower()
+
+        # Edit specified item
+        if command.isnumeric():
+            selection = int(command)
+            entry_id = results["ids"][0][selection - 1]
+            print(f"Editing item with id: {entry_id}\n")
+
+            # Edit each items values
+            print(f"Current description: {results['documents'][0][selection - 1]}")
+            desc = input("Enter a new description (Enter to keep): ")
+            print(f"Current path: {results['metadatas'][0][selection - 1]['path']}")
+            path = input("Enter a new path (Enter to keep): ")
+            print(f"Current type: {results['metadatas'][0][selection - 1]['type']}")
+            filetype = input("Enter a new type (Enter to keep): ")
+
+            # Keep old values when skipped
+            if not desc:
+                desc = results["documents"][0][selection - 1]
+            if not path:
+                path = results["metadatas"][0][selection - 1]["path"]
+            if not filetype:
+                filetype = results["metadatas"][0][selection - 1]["type"]
+            
+            # Update item
+            collection.update(
+                ids=[entry_id],
+                documents=[desc],
+                metadatas=[{"path": path, "type": filetype}]
+            )
+            print(f"Updated item with id: {entry_id}")
+        # Exit
+        elif command == "c" or command == "cancel" or command == "!!":
+            break
+        else:
+            print(f"Invalid command \"{command}\"")
+    
+    return command
+
 def search(collection, n_results=5):
     command = "s"
 
     while (command != "m" and command != "!!"):
-
         # Search
         if (command == "s"):
             query = input("What are you looking for?: ")
             results = chroma_query(collection, query, n_results)
 
+            # Print results
             for i, desc in enumerate(results["documents"][0]):
                 print(
                     "\n" +
@@ -81,45 +124,8 @@ def search(collection, n_results=5):
             open_file(results["metadatas"][0][int(command) - 1]["path"])
         # Edit item
         elif command == "e" or command == "edit":
-            # NOTE TO SELF
-            #
-            # This needs to be in its own function. Make sure to do that when you end up
-            # feeling like it
-            command  = input("Enter number OR (c)ancel: ").lower()
-            if command.isnumeric():
-                selection = int(command)
-                entry_id = results["ids"][0][selection - 1]
-                print(f"Editing item with id: {entry_id}\n")
+            command = edit_item(results)
 
-                print(f"Current description: {results['documents'][0][selection - 1]}")
-                desc = input("Enter a new description (Enter to keep): ")
-                print(f"Current path: {results['metadatas'][0][selection - 1]['path']}")
-                path = input("Enter a new path (Enter to keep): ")
-                print(f"Current type: {results['metadatas'][0][selection - 1]['type']}")
-                filetype = input("Enter a new type (Enter to keep): ")
-
-                if not desc:
-                    desc = results["documents"][0][selection - 1]
-                if not path:
-                    path = results["metadatas"][0][selection - 1]["path"]
-                if not filetype:
-                    filetype = results["metadatas"][0][selection - 1]["type"]
-                
-                collection.update(
-                    ids=[entry_id],
-                    documents=[desc],
-                    metadatas=[{"path": path, "type": filetype}]
-                )
-                print(f"Updated item with id: {entry_id}")
-                continue
-            elif command == "c" or command == "cancel":
-                continue
-            else:
-                print("Invalid command \"{command}\"")
-        # Search again
-        elif command == "s" or command == "search":
-            continue
-    
     return command
 
 if __name__ == "__main__":
