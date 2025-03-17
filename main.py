@@ -97,6 +97,34 @@ def edit_item(results):
     
     return command
 
+def remove_item(collection, results):
+    command = ""
+
+    while command != "c" and command != "cancel" and command != "!!":
+        command = input("Enter number OR (c)ancel: ").lower()
+
+        if command.isnumeric():
+            # Confirm deletion
+            confirmation = input(f"Are you sure you want to remove item {command}? (y/n): ").lower()
+            if confirmation != "y":
+                continue
+
+            # Remove specified item
+            selection = int(command)
+            entry_id = results["ids"][0][selection - 1]
+            print(f"Removing item with id: {entry_id}\n")
+            collection.delete(ids=[entry_id])
+            print(f"Removed item with id: {entry_id}")
+
+            break
+        # Exit
+        elif command == "c" or command == "cancel" or command == "!!":
+            break
+        else:
+            print(f"Invalid command \"{command}\"")
+
+    return command
+
 def search(collection, n_results=5):
     command = "s"
 
@@ -117,7 +145,7 @@ def search(collection, n_results=5):
                     "\n"
                 )
 
-        command = input(f"View file (1-{n_results}), (e)dit, (s)earch, (m)enu): ").lower()
+        command = input(f"View file (1-{n_results}), (s)earch, (e)dit, (r)emove, (m)enu): ").lower()
 
         # View file
         if command.isnumeric():
@@ -125,6 +153,9 @@ def search(collection, n_results=5):
         # Edit item
         elif command == "e" or command == "edit":
             command = edit_item(results)
+        # Remove item
+        elif command == "r" or command == "remove":
+            command = remove_item(collection, results)
 
     return command
 
