@@ -53,43 +53,49 @@ def add(collection):
     else:
         add_item(collection, desc)
 
-def search(collection):
-    command = ""
-    while (command != "n" and command != "!!"):
-        query = input("What are you looking for?: ")
-        results = chroma_query(collection, query, 3)
+def search(collection, n_results=5):
+    command = "s"
+    while (command != "m" and command != "!!"):
+        if (command == "s"):
+            query = input("What are you looking for?: ")
+            results = chroma_query(collection, query, n_results)
 
-        for i, desc in enumerate(results["documents"][0]):
-            print(
-                "\n" +
-                f"Result {i + 1}: " +
-                f"{desc}, " +
-                f"{results['metadatas'][0][i]}, " +
-                f"Distance: {results['distances'][0][i]}" +
-                "\n"
-            )
-        command = input("View file, edit, or search again? (Enter number, (e)dit, (s)earch): ").lower()
+            for i, desc in enumerate(results["documents"][0]):
+                print(
+                    "\n" +
+                    f"Result {i + 1}: " +
+                    f"{desc}, " +
+                    f"{results['metadatas'][0][i]}, " +
+                    f"Distance: {results['distances'][0][i]}" +
+                    "\n"
+                )
+
+        command = input(f"View file (1-{n_results}), (e)dit, (s)earch, (m)enu): ").lower()
 
         # View file
         if command.isnumeric():
             open_file(results["metadatas"][0][int(command) - 1]["path"])
-            command = input("Search again? (y/n): ").lower()
         # Edit item
         elif command == "e" or command == "edit":
+            # NOTE TO SELF
+            #
+            # This needs to be in its own function. Make sure to do that when you end up
+            # feeling like it
             command  = input("Enter number OR (c)ancel: ").lower()
             if command.isnumeric():
                 selection = int(command)
                 entry_id = results["ids"][0][selection - 1]
-                print(f"Editing item with id: {entry_id}")
-                print(f"Current description: {results['documents'][0][selection - 1]}")
+                print(f"Editing item with id: {entry_id}\n")
 
+                print(f"Current description: {results['documents'][0][selection - 1]}")
                 desc = input("Enter a new description (Enter to keep): ")
+                print(f"Current path: {results['metadatas'][0][selection - 1]['path']}")
                 path = input("Enter a new path (Enter to keep): ")
+                print(f"Current type: {results['metadatas'][0][selection - 1]['type']}")
                 filetype = input("Enter a new type (Enter to keep): ")
 
                 if not desc:
                     desc = results["documents"][0][selection - 1]
-                    print(desc)
                 if not path:
                     path = results["metadatas"][0][selection - 1]["path"]
                 if not filetype:
@@ -101,6 +107,7 @@ def search(collection):
                     metadatas=[{"path": path, "type": filetype}]
                 )
                 print(f"Updated item with id: {entry_id}")
+                continue
             elif command == "c" or command == "cancel":
                 continue
             else:
@@ -108,14 +115,8 @@ def search(collection):
         # Search again
         elif command == "s" or command == "search":
             continue
-        
-        # This probably needs refactoring
-        if command == "y":
-            continue
-        elif command == "n" or command == "!!":
-            return command
-        else:
-            print("Invalid command \"{command}\"")
+    
+    return command
 
 if __name__ == "__main__":
     command = ""
@@ -140,7 +141,7 @@ if __name__ == "__main__":
 
     # Main REPL
     while command != "!!":
-        command = input("What would you like to do? ((a)dd, (s)earch), (q)uit: ").lower()
+        command = input("What would you like to do? ((a)dd, (s)earch, (q)uit): ").lower()
 
         if command == "a" or command == "add":
             add(collection)
