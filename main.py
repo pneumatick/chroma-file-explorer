@@ -1,6 +1,7 @@
 import chromadb
-from hashlib import sha256
+from hashlib import sha256, md5
 import subprocess
+from termcolor import colored
 
 client = chromadb.PersistentClient(path='.')
 
@@ -18,7 +19,7 @@ def chroma_query(collection, prompt, n_results):
     return results
 
 def add_item(collection, data, metadata = None):
-    id = sha256(data.encode()).hexdigest()
+    id = md5(data.encode(), usedforsecurity=False).hexdigest()
 
     if metadata:
         collection.add(
@@ -53,69 +54,110 @@ def add(collection):
     else:
         add_item(collection, desc)
 
-def search(collection):
+def edit_item(results):
     command = ""
-    while (command != "n" and command != "!!"):
-        query = input("What are you looking for?: ")
-        results = chroma_query(collection, query, 3)
 
-        for i, desc in enumerate(results["documents"][0]):
-            print(
-                "\n" +
-                f"Result {i + 1}: " +
-                f"{desc}, " +
-                f"{results['metadatas'][0][i]}, " +
-                f"Distance: {results['distances'][0][i]}" +
-                "\n"
+    while command != "c" and command != "cancel" and command != "!!":
+        command = input("Enter number OR (c)ancel: ").lower()
+
+        # Edit specified item
+        if command.isnumeric():
+            selection = int(command)
+            entry_id = results["ids"][0][selection - 1]
+            print(f"Editing item with id: {entry_id}\n")
+
+            # Edit each items values
+            print(f"Current description: {results['documents'][0][selection - 1]}")
+            desc = input("Enter a new description (Enter to keep): ")
+            print(f"Current path: {results['metadatas'][0][selection - 1]['path']}")
+            path = input("Enter a new path (Enter to keep): ")
+            print(f"Current type: {results['metadatas'][0][selection - 1]['type']}")
+            filetype = input("Enter a new type (Enter to keep): ")
+
+            # Keep old values when skipped
+            if not desc:
+                desc = results["documents"][0][selection - 1]
+            if not path:
+                path = results["metadatas"][0][selection - 1]["path"]
+            if not filetype:
+                filetype = results["metadatas"][0][selection - 1]["type"]
+            
+            # Update item
+            collection.update(
+                ids=[entry_id],
+                documents=[desc],
+                metadatas=[{"path": path, "type": filetype}]
             )
-        command = input("View file, edit, or search again? (Enter number, (e)dit, (s)earch): ").lower()
+            print(f"Updated item with id: {entry_id}")
+        # Exit
+        elif command == "c" or command == "cancel" or command == "!!":
+            break
+        else:
+            print(f"Invalid command \"{command}\"")
+    
+    return command
+
+def remove_item(collection, results):
+    command = ""
+
+    while command != "c" and command != "cancel" and command != "!!":
+        command = input("Enter number OR (c)ancel: ").lower()
+
+        if command.isnumeric():
+            # Confirm deletion
+            confirmation = input(f"Are you sure you want to remove item {command}? (y/n): ").lower()
+            if confirmation != "y":
+                continue
+
+            # Remove specified item
+            selection = int(command)
+            entry_id = results["ids"][0][selection - 1]
+            print(f"Removing item with id: {entry_id}\n")
+            collection.delete(ids=[entry_id])
+            print(f"Removed item with id: {entry_id}")
+
+            break
+        # Exit
+        elif command == "c" or command == "cancel" or command == "!!":
+            break
+        else:
+            print(f"Invalid command \"{command}\"")
+
+    return command
+
+def search(collection, n_results=5):
+    command = "s"
+
+    while (command != "m" and command != "!!"):
+        # Search
+        if (command == "s"):
+            query = input("What are you looking for?: ")
+            results = chroma_query(collection, query, n_results)
+
+            # Print results
+            for i, desc in enumerate(results["documents"][0]):
+                print(
+                    "\n" +
+                    colored(f"{i + 1}", "green") + ": " +
+                    colored(f"{desc}\n", "yellow") +
+                    f"{results['metadatas'][0][i]}\n" +
+                    f"Distance: {results['distances'][0][i]}" +
+                    "\n"
+                )
+
+        command = input(f"View file (1-{n_results}), (s)earch, (e)dit, (r)emove, (m)enu): ").lower()
 
         # View file
         if command.isnumeric():
             open_file(results["metadatas"][0][int(command) - 1]["path"])
-            command = input("Search again? (y/n): ").lower()
         # Edit item
         elif command == "e" or command == "edit":
-            command  = input("Enter number OR (c)ancel: ").lower()
-            if command.isnumeric():
-                selection = int(command)
-                entry_id = results["ids"][0][selection - 1]
-                print(f"Editing item with id: {entry_id}")
-                print(f"Current description: {results['documents'][0][selection - 1]}")
+            command = edit_item(results)
+        # Remove item
+        elif command == "r" or command == "remove":
+            command = remove_item(collection, results)
 
-                desc = input("Enter a new description (Enter to keep): ")
-                path = input("Enter a new path (Enter to keep): ")
-                filetype = input("Enter a new type (Enter to keep): ")
-
-                if not desc:
-                    desc = results["documents"][0][selection - 1]
-                    print(desc)
-                if not path:
-                    path = results["metadatas"][0][selection - 1]["path"]
-                if not filetype:
-                    filetype = results["metadatas"][0][selection - 1]["type"]
-                
-                collection.update(
-                    ids=[entry_id],
-                    documents=[desc],
-                    metadatas=[{"path": path, "type": filetype}]
-                )
-                print(f"Updated item with id: {entry_id}")
-            elif command == "c" or command == "cancel":
-                continue
-            else:
-                print("Invalid command \"{command}\"")
-        # Search again
-        elif command == "s" or command == "search":
-            continue
-        
-        # This probably needs refactoring
-        if command == "y":
-            continue
-        elif command == "n" or command == "!!":
-            return command
-        else:
-            print("Invalid command \"{command}\"")
+    return command
 
 if __name__ == "__main__":
     command = ""
@@ -140,7 +182,7 @@ if __name__ == "__main__":
 
     # Main REPL
     while command != "!!":
-        command = input("What would you like to do? ((a)dd, (s)earch), (q)uit: ").lower()
+        command = input("What would you like to do? ((a)dd, (s)earch, (q)uit): ").lower()
 
         if command == "a" or command == "add":
             add(collection)
