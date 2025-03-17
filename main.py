@@ -1,6 +1,7 @@
 import chromadb
-from hashlib import sha256
+from hashlib import sha256, md5
 import subprocess
+from termcolor import colored
 
 client = chromadb.PersistentClient(path='.')
 
@@ -18,7 +19,7 @@ def chroma_query(collection, prompt, n_results):
     return results
 
 def add_item(collection, data, metadata = None):
-    id = sha256(data.encode()).hexdigest()
+    id = md5(data.encode(), usedforsecurity=False).hexdigest()
 
     if metadata:
         collection.add(
@@ -55,7 +56,10 @@ def add(collection):
 
 def search(collection, n_results=5):
     command = "s"
+
     while (command != "m" and command != "!!"):
+
+        # Search
         if (command == "s"):
             query = input("What are you looking for?: ")
             results = chroma_query(collection, query, n_results)
@@ -63,9 +67,9 @@ def search(collection, n_results=5):
             for i, desc in enumerate(results["documents"][0]):
                 print(
                     "\n" +
-                    f"Result {i + 1}: " +
-                    f"{desc}, " +
-                    f"{results['metadatas'][0][i]}, " +
+                    colored(f"{i + 1}", "green") + ": " +
+                    colored(f"{desc}\n", "yellow") +
+                    f"{results['metadatas'][0][i]}\n" +
                     f"Distance: {results['distances'][0][i]}" +
                     "\n"
                 )
