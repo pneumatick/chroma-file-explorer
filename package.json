@@ -1,0 +1,22 @@
+{
+  "name": "my-electron-app",
+  "version": "1.0.0",
+  "description": "Hello World!",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "tsc src/chroma.ts --outDir .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jane Doe",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.13.2",
+    "electron": "^34.1.1",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "chromadb": "^1.10.4",
+    "chromadb-default-embed": "^2.13.2"
+  }
+}
